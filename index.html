@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tic Tac Toe</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap">
+<style>
+:root{--bg:#f3f0ff;--card:#fff;--ink:#2b2358;--muted:#6b6596;--x:#ff4d86;--o:#0fb5a2;--grid:#2b2358;--hover:rgba(43,35,88,.07);--win:rgba(255,201,60,.55);--btn-ink:#fff;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15122b;--card:#221e45;--ink:#f1eeff;--muted:#a49fd0;--x:#ff7aa8;--o:#4fe3cf;--grid:#f1eeff;--hover:rgba(241,238,255,.08);--win:rgba(255,201,60,.25);--btn-ink:#15122b}}
+:root[data-theme="dark"]{--bg:#15122b;--card:#221e45;--ink:#f1eeff;--muted:#a49fd0;--x:#ff7aa8;--o:#4fe3cf;--grid:#f1eeff;--hover:rgba(241,238,255,.08);--win:rgba(255,201,60,.25);--btn-ink:#15122b}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:"Fredoka","Avenir Next","Trebuchet MS",system-ui,sans-serif;display:flex;overflow-y:auto}
+main{margin:auto;padding:24px 16px;width:min(92vw,380px);text-align:center}
+.logo{width:76px;height:34px;margin-bottom:6px}
+.logo path{stroke:var(--x);stroke-width:5;stroke-linecap:round;fill:none}
+.logo circle{stroke:var(--o);stroke-width:5;fill:none}
+h1{font-size:2.3rem;font-weight:700;letter-spacing:-.01em;margin:0 0 26px}
+.ask{font-size:1.2rem;font-weight:500;color:var(--muted);margin:0 0 18px}
+.choices{display:grid;gap:14px;margin-bottom:14px}
+.choice{border:3px solid var(--ink);background:var(--card);color:var(--ink);font:inherit;font-weight:600;font-size:1.3rem;padding:16px;border-radius:16px;cursor:pointer;box-shadow:0 5px 0 var(--ink);transition:transform .08s,box-shadow .08s}
+.choice:hover{transform:translateY(-2px);box-shadow:0 7px 0 var(--ink)}
+.choice:active{transform:translateY(4px);box-shadow:0 1px 0 var(--ink)}
+.choice[data-d]{color:#1d1a3d}
+.choice[data-d=easy]{background:#7ee8d8}.choice[data-d=medium]{background:#ffd24d}.choice[data-d=hard]{background:#ff8fb1}
+.link{border:0;background:transparent;color:var(--muted);font:inherit;font-weight:500;padding:10px;margin-top:6px;cursor:pointer;text-decoration:underline}
+.choice:focus-visible,.link:focus-visible,.cell:focus-visible,#again:focus-visible{outline:3px solid var(--x);outline-offset:3px}
+#status{min-height:1.6em;font-size:1.35rem;font-weight:600;margin:0 0 18px}
+#status .x{color:var(--x)}#status .o{color:var(--o)}
+#board{position:relative;display:grid;grid-template:repeat(3,minmax(0,1fr))/repeat(3,minmax(0,1fr));aspect-ratio:1;margin:0 auto 26px;width:min(86vw,330px)}
+.grid{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.grid line{stroke:var(--grid);stroke-width:7;stroke-linecap:round;opacity:.9}
+.cell{position:relative;z-index:1;width:100%;height:100%;border:0;background:transparent;padding:0;margin:0;cursor:pointer;border-radius:22px;transition:background .15s}
+.cell:not(:disabled):hover{background:var(--hover)}
+.cell:disabled{cursor:default}
+.cell svg{position:absolute;inset:0;width:100%;height:100%;display:block;overflow:visible}
+.mk{fill:none;stroke-width:13;stroke-linecap:round;stroke-dasharray:var(--len);animation:draw .35s ease-out both}
+.cell.x .mk{stroke:var(--x)}.cell.o .mk{stroke:var(--o)}
+.mk+.mk{animation-delay:.15s}
+@keyframes draw{from{stroke-dashoffset:var(--len)}}
+.cell.win{background:var(--win)}
+.cell.win svg{animation:pop .5s ease-out}
+@keyframes pop{40%{transform:scale(1.18)}}
+#again{border:0;background:var(--ink);color:var(--btn-ink);font:inherit;font-weight:600;font-size:1.1rem;padding:12px 30px;border-radius:14px;cursor:pointer;box-shadow:0 4px 0 var(--muted);transition:transform .08s,box-shadow .08s}
+#again:active{transform:translateY(3px);box-shadow:0 1px 0 var(--muted)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+<svg class="logo" viewBox="0 0 76 34" aria-hidden="true"><path d="M6 5L26 29M26 5L6 29"/><circle cx="54" cy="17" r="12"/></svg>
+<h1>Tic Tac Toe</h1>
+<section id="s-mode">
+  <p class="ask">Who do you want to play against?</p>
+  <div class="choices">
+    <button class="choice" data-mode="cpu">Computer</button>
+    <button class="choice" data-mode="pvp">Another person</button>
+  </div>
+</section>
+<section id="s-level" hidden>
+  <p class="ask">Choose a difficulty</p>
+  <div class="choices">
+    <button class="choice" data-d="easy">Easy</button>
+    <button class="choice" data-d="medium">Medium</button>
+    <button class="choice" data-d="hard">Hard</button>
+  </div>
+  <button class="link" data-back="1">Back</button>
+</section>
+<section id="s-game" hidden>
+  <div id="status" role="status" aria-live="polite"></div>
+  <div id="board"></div>
+  <button id="again">New game</button><br>
+  <button class="link" id="menu">Change opponent</button>
+</section>
+</main>
+<script>
+const L=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+let b,turn,over,line,mode='cpu',diff='medium',timer=null,blocked=false;
+const $=s=>document.querySelector(s),boardEl=$('#board'),statusEl=$('#status');
+boardEl.innerHTML='<svg class="grid" viewBox="0 0 300 300"><line x1="100" y1="8" x2="100" y2="292"/><line x1="200" y1="8" x2="200" y2="292"/><line x1="8" y1="100" x2="292" y2="100"/><line x1="8" y1="200" x2="292" y2="200"/></svg>';
+const mark=v=>v==='X'?'<svg viewBox="0 0 100 100"><path class="mk" style="--len:91" d="M18 18L82 82"/><path class="mk" style="--len:91" d="M82 18L18 82"/></svg>':v==='O'?'<svg viewBox="0 0 100 100"><circle class="mk" style="--len:202" cx="50" cy="50" r="32"/></svg>':'';
+const cells=[...Array(9)].map((_,i)=>{const c=document.createElement('button');c.className='cell';c.onclick=()=>humanMove(i);boardEl.appendChild(c);return c});
+
+const winner=s=>{for(const l of L){const[a,c,d]=l;if(s[a]&&s[a]===s[c]&&s[a]===s[d])return{p:s[a],l}}return null};
+const empties=s=>s.map((v,i)=>v?-1:i).filter(i=>i>=0);
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+function findWin(s,p){for(const i of empties(s)){s[i]=p;const w=winner(s);s[i]=null;if(w)return i}return -1}
+function minimax(s,p,d){
+  const w=winner(s);if(w)return w.p==='O'?10-d:d-10;
+  const e=empties(s);if(!e.length)return 0;
+  let best=p==='O'?-99:99;
+  for(const i of e){s[i]=p;const v=minimax(s,p==='O'?'X':'O',d+1);s[i]=null;best=p==='O'?Math.max(best,v):Math.min(best,v)}
+  return best;
+}
+function cpuMove(){
+  const e=empties(b);
+  if(diff==='easy')return pick(e);
+  if(diff==='medium'){let m=findWin(b,'O');if(m<0)m=findWin(b,'X');return m>=0?m:pick(e)}
+  let best=-99,moves=[];
+  for(const i of e){b[i]='O';const v=minimax(b,'X',1);b[i]=null;if(v>best){best=v;moves=[i]}else if(v===best)moves.push(i)}
+  return pick(moves);
+}
+
+function reset(){
+  clearTimeout(timer);blocked=false;
+  b=Array(9).fill(null);turn='X';over=false;line=null;render();
+}
+function humanMove(i){if(!blocked)play(i)}
+function play(i){
+  if(over||b[i])return;
+  b[i]=turn;
+  const w=winner(b);
+  if(w){over=true;line=w.l}
+  else if(!empties(b).length){over=true}
+  else turn=turn==='X'?'O':'X';
+  render();
+  if(!over&&mode==='cpu'&&turn==='O'){
+    blocked=true;
+    timer=setTimeout(()=>{blocked=false;play(cpuMove())},450);
+  }
+}
+function render(){
+  cells.forEach((c,i)=>{
+    const v=b[i];
+    if((c.dataset.v||'')!==(v||'')){c.dataset.v=v||'';c.innerHTML=mark(v)}
+    c.className='cell'+(v?' '+v.toLowerCase():'')+(line&&line.includes(i)?' win':'');
+    c.disabled=over||!!v;
+    c.setAttribute('aria-label',`Square ${i+1}${v?', '+v:', empty'}`);
+  });
+  const cpu=mode==='cpu';
+  let t;
+  if(over){
+    const w=winner(b);
+    t=!w?"It's a draw.":cpu?(w.p==='X'?'You win!':'Computer wins.'):`Player <b class="${w.p.toLowerCase()}">${w.p}</b> wins!`;
+  }else{
+    t=cpu?(turn==='X'?'Your turn (<b class="x">X</b>)':'Computer is thinking…'):`Player <b class="${turn.toLowerCase()}">${turn}</b>'s turn`;
+  }
+  statusEl.innerHTML=t;
+}
+function show(id){['mode','level','game'].forEach(n=>$('#s-'+n).hidden=n!==id)}
+$('#s-mode').onclick=e=>{const m=e.target.dataset.mode;if(!m)return;mode=m;if(m==='cpu')show('level');else{reset();show('game')}};
+$('#s-level').onclick=e=>{const t=e.target;if(t.dataset.d){diff=t.dataset.d;reset();show('game')}else if(t.dataset.back)show('mode')};
+$('#menu').onclick=()=>{clearTimeout(timer);show('mode')};
+$('#again').onclick=reset;
+reset();
+</script>
+</body>
+</html>
